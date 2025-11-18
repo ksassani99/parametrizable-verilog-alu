@@ -23,7 +23,6 @@ module alu #(
     localparam OP_SRA = 3'b111;   // bit shift right arithmetic (signed)
 
     reg [WIDTH:0] temp_result;    // temporary result with extra bit for carry
-    integer shamt;                // shift amount
 
     // combinational logic for operations (no clock)
     always @(*) begin
@@ -34,7 +33,6 @@ module alu #(
         negative = 1'b0;
 
         temp_result = {(WIDTH+1){1'b0}};
-        shamt = (b >= WIDTH) ? WIDTH : b;   // limit shift amount to WIDTH
 
         // cases for operations
         case (op)
@@ -60,13 +58,13 @@ module alu #(
                 y = a ^ b;   // bitwise xor
             end
             OP_SLL: begin
-                y = a << shamt;   // logical left shift by b for unsigned (b saturated at width)
+                y = (b >= WIDTH) ? (a << (WIDTH-1)) : (a << b);   // logical left shift by b for unsigned (b saturated at width-1)
             end
             OP_SRL: begin
-                y = a >> shamt;   // logical right shift by b for unsigned (b saturated at width)
+                y = (b >= WIDTH) ? (a >> (WIDTH-1)) : (a >> b);   // logical right shift by b for unsigned (b saturated at width-1)
             end
             OP_SRA: begin
-                y = $signed(a) >>> shamt;   // arithmetic right shift by b for signed (b saturated at width)
+                y = (b >= WIDTH) ? ($signed(a) >>> (WIDTH-1)) : ($signed(a) >>> b);   // arithmetic right shift by b for signed (b saturated at width-1)
             end
             default: begin
                 y = {WIDTH{1'b0}};   // default case
