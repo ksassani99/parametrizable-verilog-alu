@@ -7,7 +7,7 @@ module alu #(
 
     output reg [WIDTH-1:0] y,   // output result
     output reg overflow,        // overflow flag (for signed arithmetic)
-    output reg carry,           // carry flag (for unsigned arithmetic)
+    output reg carry,           // carry/borrow flag (for unsigned arithmetic)
     output reg zero,            // zero flag
     output reg negative         // negative flag
 );
@@ -22,16 +22,21 @@ module alu #(
     localparam OP_SRL = 3'b110;   // bit shift right logical (unsigned)
     localparam OP_SRA = 3'b111;   // bit shift right arithmetic (signed)
 
-    reg [WIDTH:0] temp_result; // temporary result with extra bit for carry
+    reg [WIDTH:0] temp_result;    // temporary result with extra bit for carry
+    integer shamt;                // shift amount
 
-    always @(*) begin       // combinational logic (no clock)
-        y = {WIDTH{1'b0}};  // default outputs set to zero
+    // combinational logic for operations (no clock)
+    always @(*) begin
+        y = {WIDTH{1'b0}};   // default outputs
         overflow = 1'b0;
         carry = 1'b0;
         zero = 1'b0;
         negative = 1'b0;
-        temp_result = {(WIDTH+1){1'b0}};
 
+        temp_result = {(WIDTH+1){1'b0}};
+        shamt = (b >= WIDTH) ? WIDTH : b;   // limit shift amount to WIDTH
+
+        // cases for operations
         case (op)
             OP_ADD: begin
                 temp_result = {1'b0, a} + {1'b0, b};                                   // temporary result with carry
@@ -42,19 +47,34 @@ module alu #(
             OP_SUB: begin
                 temp_result = {1'b0, a} - {1'b0, b};                                   // temporary result with borrow
                 y = temp_result[WIDTH-1:0];                                            // output result
-                carry = temp_result[WIDTH];                                            // carry flag for unsigned (borrow)
+                carry = temp_result[WIDTH];                                            // borrow flag for unsigned
                 overflow = (a[WIDTH-1] != b[WIDTH-1]) && (y[WIDTH-1] != a[WIDTH-1]);   // overflow for signed (different sign inputs leading to different sign output, overflow)
             end
             OP_AND: begin
-                y = a & b;
+                y = a & b;   // bitwise and
             end
             OP_OR: begin
-                y = a | b;
+                y = a | b;   // bitwise or
             end
             OP_XOR: begin
-                y = a ^ b;
+                y = a ^ b;   // bitwise xor
+            end
+            OP_SLL: begin
+                y = a << shamt;   // logical left shift by b for unsigned (b saturated at width)
+            end
+            OP_SRL: begin
+                y = a >> shamt;   // logical right shift by b for unsigned (b saturated at width)
+            end
+            OP_SRA: begin
+                y = $signed(a) >>> shamt;   // arithmetic right shift by b for signed (b saturated at width)
+            end
+            default: begin
+                y = {WIDTH{1'b0}};   // default case
             end
         endcase
-    end
 
+        // set remaining flags
+        zero = (y == {WIDTH{1'b0}});    // zero flag
+        negative = y[WIDTH-1];          // negative flag for signed
+    end
 endmodule
