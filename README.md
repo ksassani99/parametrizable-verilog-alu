@@ -1,5 +1,5 @@
-# Parameterizable ALU in Verilog (8/16/32/64-bit)
-A parameterizable Arithmetic Logic Unit (ALU) implemented in Verilog, supporting arithmetic, logical, and shift operations with carry, overflow, zero, and negative flag generation. Includes a fully self-checking testbench with directed, edge-case, and randomized testing.
+# Parametrizable ALU in Verilog (8/16/32/64-bit)
+A parametrizable Arithmetic Logic Unit (ALU) implemented in Verilog, supporting arithmetic, logical, and shift operations with carry, overflow, zero, and negative flag generation. Includes a fully self-checking testbench with directed, edge-case, and randomized testing.
 
 ## Project Structure
 ```
@@ -11,7 +11,7 @@ README.md
 ```
 
 ## Design Overview
-This ALU is parameterized for WIDTH, allowing testing and synthesis at 4, 8, 16, 32, and 64 bits (tested).
+This ALU is parametrized for WIDTH, allowing testing and synthesis at 4, 8, 16, 32, and 64 bits (tested).
 
 ### Supported Operations
 | Opcode | Name | Function                        |
